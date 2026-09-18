@@ -103,7 +103,8 @@ function setFormStatus(message, type = "") {
 }
 
 function buildBookingMessage(firstName, lastName, kitNumber) {
-  return `Бронь! ${kitLabel(kitNumber)}. Имя: ${firstName}, Фамилия: ${lastName}`;
+  const uniqueSuffix = Date.now();
+  return `Бронь! ${kitLabel(kitNumber)}. Имя: ${firstName}, Фамилия: ${lastName}. ${uniqueSuffix}`;
 }
 
 function buildTelegramUrl(message) {
