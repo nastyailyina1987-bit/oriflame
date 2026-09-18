@@ -103,13 +103,13 @@ function setFormStatus(message, type = "") {
 }
 
 function buildBookingMessage(firstName, lastName, kitNumber) {
-  const uniqueSuffix = Date.now();
-  return `Бронь! ${kitLabel(kitNumber)}. Имя: ${firstName}, Фамилия: ${lastName}. ${uniqueSuffix}`;
+  return `Бронь! ${kitLabel(kitNumber)}. Имя: ${firstName}, Фамилия: ${lastName}`;
 }
 
 function buildTelegramUrl(message) {
   const username = TELEGRAM_USERNAME.replace(/^@/, "");
-  return `https://t.me/${username}?text=${encodeURIComponent(message)}`;
+  const cacheBust = Date.now();
+  return `https://t.me/${username}?text=${encodeURIComponent(message)}&_t=${cacheBust}`;
 }
 
 function handleFormSubmit(event) {
