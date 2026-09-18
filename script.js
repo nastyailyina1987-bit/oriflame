@@ -1,5 +1,12 @@
-/** Личный Telegram для бронирований (без @) */
-const TELEGRAM_USERNAME = "Nastyailyina";
+/**
+ * URL для записи заявок в Google Таблицу (Sheet.best, Formspree и т.п.).
+ * Sheet.best: https://sheet.best/api/sheets/ВАШ_ID
+ * В первой строке таблицы: Имя | Фамилия | Телефон | Набор
+ */
+const BOOKING_WEBHOOK_URL =
+  "https://api.sheetbest.com/sheets/a68d9e60-45b0-4a7f-ae38-76d4a46d25b7";
+
+const PHONE_COUNTRY_PREFIX = "+375";
 
 const KIT_COUNT = 15;
 
@@ -102,21 +109,31 @@ function setFormStatus(message, type = "") {
   }
 }
 
-function buildBookingMessage(firstName, lastName, kitNumber) {
-  return `Бронь! ${kitLabel(kitNumber)}. Имя: ${firstName}, Фамилия: ${lastName}`;
+function normalizePhoneLocal(raw) {
+  return String(raw).replace(/\D/g, "");
 }
 
-function buildTelegramUrl(message) {
-  const username = TELEGRAM_USERNAME.replace(/^@/, "");
-  const cacheBust = Date.now();
-  return `https://t.me/${username}?text=${encodeURIComponent(message)}&_t=${cacheBust}`;
+function buildFullPhone(localDigits) {
+  return `${PHONE_COUNTRY_PREFIX}${localDigits}`;
 }
 
-function handleFormSubmit(event) {
+function buildBookingPayload(firstName, lastName, phone, kitNumber) {
+  return {
+    Имя: firstName,
+    Фамилия: lastName,
+    Телефон: phone,
+    Набор: kitLabel(kitNumber),
+  };
+}
+
+async function handleFormSubmit(event) {
   event.preventDefault();
 
+  const submitBtn = document.getElementById("submit-btn");
   const firstName = document.getElementById("input-first-name").value.trim();
   const lastName = document.getElementById("input-last-name").value.trim();
+  const phoneLocalRaw = document.getElementById("input-phone-local").value;
+  const phoneLocal = normalizePhoneLocal(phoneLocalRaw);
   const kitNumber = inputKitNumber.value;
 
   if (!firstName || !lastName) {
@@ -124,13 +141,56 @@ function handleFormSubmit(event) {
     return;
   }
 
-  const message = buildBookingMessage(firstName, lastName, kitNumber);
-  const telegramUrl = buildTelegramUrl(message);
+  if (phoneLocal.length < 9) {
+    setFormStatus("Введите корректный номер телефона после +375.", "error");
+    return;
+  }
 
-  window.open(telegramUrl, "_blank", "noopener,noreferrer");
+  if (!BOOKING_WEBHOOK_URL.trim()) {
+    setFormStatus(
+      "Отправка не настроена: укажите BOOKING_WEBHOOK_URL в файле script.js.",
+      "error"
+    );
+    return;
+  }
 
-  setFormStatus("Telegram открыт — нажмите «Отправить» в чате.", "success");
-  setTimeout(closeModal, 1800);
+  const fullPhone = buildFullPhone(phoneLocal);
+  const payload = buildBookingPayload(firstName, lastName, fullPhone, kitNumber);
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+  }
+  setFormStatus("Отправляем заявку…");
+
+  try {
+    const response = await fetch(BOOKING_WEBHOOK_URL.trim(), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    setFormStatus(
+      "Заявка успешно отправлена! Спасибо — мы свяжемся с вами по указанному номеру.",
+      "success"
+    );
+    setTimeout(closeModal, 2800);
+  } catch {
+    setFormStatus(
+      "Не удалось отправить заявку. Проверьте интернет и попробуйте ещё раз.",
+      "error"
+    );
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+    }
+  }
 }
 
 function initKitCardTouchFeedback() {
