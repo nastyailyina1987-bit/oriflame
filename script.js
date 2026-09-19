@@ -1,7 +1,6 @@
 /**
- * URL для записи заявок в Google Таблицу (Sheet.best, Formspree и т.п.).
- * Sheet.best: https://sheet.best/api/sheets/ВАШ_ID
- * В первой строке таблицы: Имя | Фамилия | Телефон | Набор
+ * Sheet.best — POST JSON в Google Таблицу.
+ * Первая строка листа: Имя | Фамилия | Телефон | Набор
  */
 const BOOKING_WEBHOOK_URL =
   "https://api.sheetbest.com/sheets/a68d9e60-45b0-4a7f-ae38-76d4a46d25b7";
@@ -109,8 +108,27 @@ function setFormStatus(message, type = "") {
   }
 }
 
+function normalizeBookingWebhookUrl(url) {
+  const trimmed = String(url).trim();
+  if (!trimmed) return "";
+
+  return trimmed
+    .replace(/^https:\/\/sheet\.best\/api\/sheets\//i, "https://api.sheetbest.com/sheets/")
+    .replace(/\/+$/, "");
+}
+
 function normalizePhoneLocal(raw) {
-  return String(raw).replace(/\D/g, "");
+  let digits = String(raw).replace(/\D/g, "");
+
+  if (digits.startsWith("375") && digits.length > 9) {
+    digits = digits.slice(3);
+  }
+
+  if (digits.length > 9) {
+    digits = digits.slice(-9);
+  }
+
+  return digits;
 }
 
 function buildFullPhone(localDigits) {
@@ -124,6 +142,31 @@ function buildBookingPayload(firstName, lastName, phone, kitNumber) {
     Телефон: phone,
     Набор: kitLabel(kitNumber),
   };
+}
+
+async function submitBookingToSheet(payload) {
+  const webhookUrl = normalizeBookingWebhookUrl(BOOKING_WEBHOOK_URL);
+
+  if (!webhookUrl.startsWith("https://api.sheetbest.com/sheets/")) {
+    throw new Error("INVALID_WEBHOOK_URL");
+  }
+
+  const response = await fetch(webhookUrl, {
+    method: "POST",
+    mode: "cors",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(`HTTP_${response.status}${errorText ? `:${errorText.slice(0, 80)}` : ""}`);
+  }
+
+  return response;
 }
 
 async function handleFormSubmit(event) {
@@ -146,7 +189,7 @@ async function handleFormSubmit(event) {
     return;
   }
 
-  if (!BOOKING_WEBHOOK_URL.trim()) {
+  if (!normalizeBookingWebhookUrl(BOOKING_WEBHOOK_URL)) {
     setFormStatus(
       "Отправка не настроена: укажите BOOKING_WEBHOOK_URL в файле script.js.",
       "error"
@@ -163,27 +206,17 @@ async function handleFormSubmit(event) {
   setFormStatus("Отправляем заявку…");
 
   try {
-    const response = await fetch(BOOKING_WEBHOOK_URL.trim(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
+    await submitBookingToSheet(payload);
 
     setFormStatus(
       "Заявка успешно отправлена! Спасибо — мы свяжемся с вами по указанному номеру.",
       "success"
     );
     setTimeout(closeModal, 2800);
-  } catch {
+  } catch (error) {
+    console.error("Booking submit failed:", error);
     setFormStatus(
-      "Не удалось отправить заявку. Проверьте интернет и попробуйте ещё раз.",
+      "Не удалось отправить заявку. Проверьте интернет, заголовки таблицы (Имя, Фамилия, Телефон, Набор) и попробуйте снова.",
       "error"
     );
   } finally {
