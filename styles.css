@@ -665,6 +665,32 @@ body {
   border: 1px solid rgba(63, 45, 38, 0.28);
 }
 
+.phone-input {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+}
+
+.phone-input__prefix {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0.95rem 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1c1814;
+  background: #ffffff;
+  border: 1px solid rgba(63, 45, 38, 0.28);
+  border-right: none;
+  border-radius: 2px 0 0 2px;
+}
+
+.modal__form .phone-input__number {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0 2px 2px 0;
+}
+
 .modal__form .btn--primary {
   color: #2f211c;
   background: #f5f5dc;
@@ -880,6 +906,11 @@ body {
 
   .modal__form .field:not(.field--kit) .field__input {
     padding: 0.78rem 0.9rem;
+    font-size: 1rem;
+  }
+
+  .phone-input__prefix {
+    padding: 0.78rem 0.7rem;
     font-size: 1rem;
   }
 
