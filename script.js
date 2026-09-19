@@ -135,12 +135,13 @@ function buildFullPhone(localDigits) {
   return `${PHONE_COUNTRY_PREFIX}${localDigits}`;
 }
 
+/** Ключи JSON = заголовки 1-й строки таблицы: Имя | Фамилия | Телефон | Набор */
 function buildBookingPayload(firstName, lastName, phone, kitNumber) {
   return {
-    Имя: firstName,
-    Фамилия: lastName,
-    Телефон: phone,
-    Набор: kitLabel(kitNumber),
+    "Имя": firstName,
+    "Фамилия": lastName,
+    "Телефон": phone,
+    "Набор": kitLabel(kitNumber),
   };
 }
 
