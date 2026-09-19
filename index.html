@@ -251,10 +251,29 @@
             />
           </label>
 
+          <label class="field">
+            <span class="field__label">Телефон</span>
+            <div class="phone-input">
+              <span class="phone-input__prefix">+375</span>
+              <input
+                class="field__input phone-input__number"
+                type="tel"
+                name="phoneLocal"
+                id="input-phone-local"
+                inputmode="numeric"
+                autocomplete="tel-national"
+                required
+                placeholder="29 123 45 67"
+                maxlength="11"
+                aria-label="Номер телефона без кода +375"
+              />
+            </div>
+          </label>
+
           <div class="modal__hint">
             <p class="modal__hint-text">
-              После нажатия кнопки откроется Telegram с готовым сообщением — останется
-              только подтвердить отправку.
+              После отправки заявка сохранится, и мы свяжемся с вами по указанному
+              номеру.
             </p>
             <p class="modal__hint-text modal__hint-text--alt">
               Если у вас нет Telegram, напишите в Viber или позвоните:
@@ -270,8 +289,8 @@
 
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
 
-          <button type="submit" class="btn btn--primary btn--full btn--telegram" id="submit-btn">
-            Отправить в Telegram
+          <button type="submit" class="btn btn--primary btn--full" id="submit-btn">
+            Отправить заявку
           </button>
         </form>
       </div>
@@ -324,6 +343,6 @@
         window.addEventListener("load", hideNetlifyBadge);
       })();
     </script>
-    <script src="script.js?v=15"></script>
+    <script src="script.js?v=19"></script>
   </body>
 </html>
