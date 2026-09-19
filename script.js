@@ -22,6 +22,12 @@ function kitLabel(kitNumber) {
   return `Набор №${kitNumber}`;
 }
 
+/** Значение для Google Таблицы — только номер, без № и прочих символов */
+function kitSheetValue(kitNumber) {
+  const digits = String(kitNumber).trim().replace(/\D/g, "");
+  return digits || String(kitNumber).trim();
+}
+
 function renderKits() {
   const fragment = document.createDocumentFragment();
 
@@ -141,7 +147,7 @@ function buildBookingPayload(firstName, lastName, phone, kitNumber) {
     "Имя": firstName,
     "Фамилия": lastName,
     "Телефон": phone,
-    "Набор": kitLabel(kitNumber),
+    "Набор": kitSheetValue(kitNumber),
   };
 }
 
