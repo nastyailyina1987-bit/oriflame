@@ -1,13 +1,13 @@
 /**
  * Sheet.best — POST JSON в Google Таблицу.
- * Первая строка листа: Имя | Фамилия | Телефон | Набор
+ * Первая строка листа: Имя | Фамилия | Телефон | Набор | Кто порекомендовал
  */
 const BOOKING_WEBHOOK_URL =
   "https://api.sheetbest.com/sheets/a68d9e60-45b0-4a7f-ae38-76d4a46d25b7";
 
 const PHONE_COUNTRY_PREFIX = "+375";
 
-const KIT_COUNT = 15;
+const KIT_COUNT = 14;
 
 const modal = document.getElementById("booking-modal");
 const form = document.getElementById("booking-form");
@@ -141,13 +141,14 @@ function buildFullPhone(localDigits) {
   return `${PHONE_COUNTRY_PREFIX}${localDigits}`;
 }
 
-/** Ключи JSON = заголовки 1-й строки таблицы: Имя | Фамилия | Телефон | Набор */
-function buildBookingPayload(firstName, lastName, phone, kitNumber) {
+/** Ключи JSON = заголовки 1-й строки таблицы: Имя | Фамилия | Телефон | Набор | Кто порекомендовал */
+function buildBookingPayload(firstName, lastName, phone, kitNumber, referrer) {
   return {
     "Имя": firstName,
     "Фамилия": lastName,
     "Телефон": phone,
     "Набор": kitSheetValue(kitNumber),
+    "Кто порекомендовал": referrer,
   };
 }
 
@@ -185,6 +186,7 @@ async function handleFormSubmit(event) {
   const phoneLocalRaw = document.getElementById("input-phone-local").value;
   const phoneLocal = normalizePhoneLocal(phoneLocalRaw);
   const kitNumber = inputKitNumber.value;
+  const referrer = document.getElementById("input-referrer").value.trim();
 
   if (!firstName || !lastName) {
     setFormStatus("Пожалуйста, заполните имя и фамилию.", "error");
@@ -205,7 +207,13 @@ async function handleFormSubmit(event) {
   }
 
   const fullPhone = buildFullPhone(phoneLocal);
-  const payload = buildBookingPayload(firstName, lastName, fullPhone, kitNumber);
+  const payload = buildBookingPayload(
+    firstName,
+    lastName,
+    fullPhone,
+    kitNumber,
+    referrer
+  );
 
   if (submitBtn) {
     submitBtn.disabled = true;
@@ -223,7 +231,7 @@ async function handleFormSubmit(event) {
   } catch (error) {
     console.error("Booking submit failed:", error);
     setFormStatus(
-      "Не удалось отправить заявку. Проверьте интернет, заголовки таблицы (Имя, Фамилия, Телефон, Набор) и попробуйте снова.",
+      "Не удалось отправить заявку. Проверьте интернет, заголовки таблицы (Имя, Фамилия, Телефон, Набор, Кто порекомендовал) и попробуйте снова.",
       "error"
     );
   } finally {
@@ -255,22 +263,38 @@ function initKitCardTouchFeedback() {
     clearTimer = setTimeout(clearTouched, 320);
   };
 
-  kitsGrid.addEventListener(
-    "pointerdown",
-    (event) => {
-      if (event.pointerType === "mouse") return;
-      const card = event.target.closest(".kit-card");
-      if (!card || !kitsGrid.contains(card)) return;
-      clearTouched();
-      touchedCard = card;
-      card.classList.add("is-touched");
-    },
-    { passive: true }
-  );
+  const onPointerDown = (event) => {
+    if (event.pointerType === "mouse") return;
+    const card = event.target.closest(".kit-card, .surprise-gift__figure");
+    if (!card) return;
+    if (card.classList.contains("kit-card") && !kitsGrid.contains(card)) {
+      return;
+    }
+    clearTouched();
+    touchedCard = card;
+    card.classList.add("is-touched");
+  };
 
+  kitsGrid.addEventListener("pointerdown", onPointerDown, { passive: true });
   kitsGrid.addEventListener("pointerup", scheduleClear, { passive: true });
   kitsGrid.addEventListener("pointercancel", scheduleClear, { passive: true });
   kitsGrid.addEventListener("pointerleave", scheduleClear, { passive: true });
+
+  const surpriseFigure = document.querySelector(".surprise-gift__figure");
+  if (surpriseFigure) {
+    surpriseFigure.addEventListener("pointerdown", onPointerDown, {
+      passive: true,
+    });
+    surpriseFigure.addEventListener("pointerup", scheduleClear, {
+      passive: true,
+    });
+    surpriseFigure.addEventListener("pointercancel", scheduleClear, {
+      passive: true,
+    });
+    surpriseFigure.addEventListener("pointerleave", scheduleClear, {
+      passive: true,
+    });
+  }
 }
 
 function initEventListeners() {
