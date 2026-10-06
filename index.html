@@ -23,7 +23,7 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=10" />
+    <link rel="stylesheet" href="styles.css?v=14" />
     <style>
       .btn,
       .btn--primary,
@@ -178,6 +178,36 @@
     </header>
 
     <main class="main">
+      <section class="surprise-gift" aria-labelledby="surprise-heading">
+        <div class="surprise-gift__layout">
+          <figure class="surprise-gift__figure">
+            <div class="surprise-gift__media">
+              <img
+                src="photo_0.png"
+                alt="Все возможные подарки-сюрпризы к наборам Oriflame"
+                width="1200"
+                height="1200"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
+            <figcaption class="surprise-gift__caption">
+              Все подарки-сюрпризы
+            </figcaption>
+          </figure>
+          <div class="surprise-gift__copy">
+            <h2 id="surprise-heading" class="surprise-gift__title">
+              Подарок-сюрприз в каждом наборе
+            </h2>
+            <p class="surprise-gift__text">
+              В каждый набор мы случайным образом добавляем один подарок-сюрприз.
+              Какой именно попадётся — узнаете при получении. На фото — все
+              возможные подарки.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section class="kits" aria-labelledby="kits-heading">
         <h2 id="kits-heading" class="visually-hidden">Каталог наборов</h2>
         <ul class="kits__grid" id="kits-grid"></ul>
@@ -270,6 +300,18 @@
             </div>
           </label>
 
+          <label class="field">
+            <span class="field__label">По чьей рекомендации перешли на наш сайт?</span>
+            <input
+              class="field__input"
+              type="text"
+              name="referrer"
+              id="input-referrer"
+              autocomplete="off"
+              placeholder="Имя и Фамилия"
+            />
+          </label>
+
           <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
 
           <button type="submit" class="btn btn--primary btn--full" id="submit-btn">
@@ -326,6 +368,6 @@
         window.addEventListener("load", hideNetlifyBadge);
       })();
     </script>
-    <script src="script.js?v=20"></script>
+    <script src="script.js?v=23"></script>
   </body>
 </html>
